@@ -192,6 +192,7 @@ app.post('/db/delete', (req, res) => {
     const link = req.body.link
     const pathDBs = path.join(__dirname, 'dbs')
     const pathFile = (pathDBs + link).replace('/dbs/dbs/', '/dbs/').replace(/\\/g, '/')
+    console.log(pathFile)
     try {
         fs.unlinkSync(pathFile)
         res.json({
