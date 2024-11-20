@@ -1,0 +1,32 @@
+{
+  "name": "kysunongnghiep",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js --ignore dbs"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "body-parser": "^1.20.3",
+    "cron": "^3.1.8",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.1",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "lbm-helpers": "^1.0.5",
+    "lodash": "^4.17.21",
+    "md5": "^2.3.0",
+    "mongoose": "^8.7.1",
+    "multer": "^1.4.5-lts.1",
+    "nodemon": "^3.1.7",
+    "sha1": "^1.1.1",
+    "sharp": "^0.33.5",
+    "sharp-multer": "^0.3.3",
+    "unzipper": "^0.12.3"
+  }
+}

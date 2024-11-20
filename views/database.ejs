@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BACKUP AND RESTORE MONGODB</title>
+  <link rel="stylesheet" href="/assets/bootstrap5/css/bootstrap.min.css">
+  <script src="/assets/bootstrap5/js/bootstrap.bundle.min.js"></script>
+  <script src="/assets/js/jquery-3.7.1.min.js"></script>
+  <script src="/assets/js/sweetalert2.js"></script>
+  <style>
+    .list-group-item {
+      margin-top: 5px;
+    }
+
+    .itemDB:hover {
+      background-color: #01000033;
+      cursor: pointer;
+    }
+
+    .itemDB.selected {
+      background-color: #01000033;
+    }
+
+    .itemFile:hover {
+      background-color: #01000033;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <div class="container-fluid">
+      <h1 class="mt-5 mb-5" style="text-align: center;">BACKUP - RESOTRE DATABASE MONGODB</h1>
+      <div class="row mt-5 mb-5">
+        <div class="col-6 offset-3">
+          <div class="input-group mb-3">
+            <span class="input-group-text">Uri Mongodb</span>
+            <input id="uriMongoDB" type="text" class="form-control" value="mongodb://localhost:27017">
+            <button id="btnConnect" class="btn btn-primary" type="button">Connect</button>
+          </div>
+          <div id="messageConnect" style="text-align: center; position: absolute;"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-4">
+          <ul class="list-group">
+            <li class="list-group-item active">Databases</li>
+          </ul>
+          <ul class="list-group" id="listDatabase">
+            <li class="list-group-item">Không có dữ liệu!</li>
+          </ul>
+        </div>
+        <div class="col-8">
+          <ul class="list-group">
+            <li class="list-group-item active">Files Backup <span id="dbSelected"></span></li>
+          </ul>
+          <ul class="list-group" id="listFilesBackup">
+            <li class="list-group-item">Không có dữ liệu!</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    $(document).ready(function($) {
+      $('#uriMongoDB').val(localStorage.getItem('uriMongoDB')).on('input', function() {
+        localStorage.setItem('uriMongoDB', $(this).val())
+      })
+      const dbBackup = async (dbname) => {
+        const result = await $.ajax({
+          url: '/db/backup',
+          type: 'post',
+          data: {
+            dbname
+          }
+        })
+        if (result.status === 'success') {
+          getFilesBackup()
+        }
+      }
+      const getFilesBackup = async () => {
+        $('#listFilesBackup').html(`<li class="list-group-item">Không có dữ liệu!</li>`)
+        const dbname = $('.itemDB.selected').attr('data-dbname')
+        const result = await $.ajax({
+          url: `/db/files-backup`,
+          type: 'post',
+          data: {
+            dbname
+          }
+        })
+        if (result.data && result.data.length) {
+          let itemFile = ``
+          result.data.map(file => {
+            itemFile += `
+              <li class="list-group-item itemFile">
+                ${file.filename} - ${file.size}MB
+                <span style="color: blue">(${file.time})</span>
+                <div style="height: 100%; position: absolute; right: 0; top: 0;">
+                  <button data-dbname="${dbname}" data-link="${file.link}" style="height: 100%;" href="${file.link}" class="btn btn-sm btn-warning btnRestore">Restore</button>
+                  <a style="height: 100%;" download href="${file.link}" class="btn btn-sm btn-secondary">Download</a>
+                  <button style="height: 100%;" data-link="${file.link}" class="btn btn-sm btn-danger btnDelete">Delete</button>
+                </div>
+              </li>`
+          })
+          $('#listFilesBackup').html(itemFile)
+          $('#listFilesBackup .btnDelete').off('click').on('click', async function() {
+            const $this = $(this)
+            const link = $this.attr('data-link')
+            const result = await $.ajax({
+              url: '/db/delete',
+              type: 'post',
+              data: {
+                link
+              }
+            })
+            if (result.status === 'success') {
+              $this.closest('li').remove()
+              getFilesBackup()
+            }
+          })
+          $('#listFilesBackup .btnRestore').off('click').on('click', async function() {
+            const $this = $(this)
+            const dbname = $this.attr('data-dbname')
+            const link = $this.attr('data-link')
+            Swal.fire({
+              title: "Restore Database",
+              html: "Processing...",
+              timerProgressBar: true,
+              didOpen: async () => {
+                Swal.showLoading();
+                const result = await $.ajax({
+                  url: `/db/restore`,
+                  type: 'post',
+                  data: {
+                    dbname: dbname,
+                    link: link
+                  }
+                })
+                Swal.fire(result.message);
+              },
+            })
+          })
+        }
+      }
+      const getListDBs = async () => {
+        $('#listDatabase').html(`<li class="list-group-item">Không có dữ liệu!</li>`)
+        const uriMongoDB = $('#uriMongoDB').val()
+        const result = await $.ajax({
+          url: `/db/list`,
+          type: 'post',
+          data: {
+            uriMongoDB
+          }
+        })
+
+        if (result.data && result.data.length) {
+          let itemDB = ``
+          result.data.map(db => {
+            itemDB += `<li data-dbname="${db.name}" class="list-group-item itemDB">${db.name} (${db.sizeOnDisk}MB)</li>`
+          })
+          $('#listDatabase').html(itemDB)
+          $('#listDatabase .itemDB').off('click').on('click', function() {
+            const $this = $(this)
+            $('.itemDB').removeClass('selected')
+            $this.addClass('selected')
+            $('#dbSelected').html(` - ${$this.text()} <button id="btnBackup" style="height: 100%; position: absolute; right: 0; top: 0;" class="btn btn-sm btn-warning">Backup</button>`)
+            $('#btnBackup').off('click').on('click', function() {
+              const dbname = $('.itemDB.selected').attr('data-dbname')
+              dbBackup(dbname)
+            })
+            getFilesBackup()
+          })
+        } else {
+          Swal.fire('Lỗi!', result.message)
+        }
+      }
+      $('#btnConnect').on('click', async function() {
+        $('#messageConnect').text(`Connecting...`)
+        $('#listDatabase').html(`<li class="list-group-item">Không có dữ liệu!</li>`)
+        await getListDBs()
+        $('#messageConnect').text(``)
+      }).trigger('click')
+    });
+  </script>
+</body>
+
+</html>
