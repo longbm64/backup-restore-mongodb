@@ -191,7 +191,7 @@ app.post('/db/files-backup', async (req, res) => {
 app.post('/db/delete', (req, res) => {
     const link = req.body.link
     const pathDBs = path.join(__dirname, 'dbs')
-    const pathFile = (pathDBs + link).replace('/dbs/dbs/', '/dbs/')
+    const pathFile = (pathDBs + link).replace('/dbs/dbs/', '/dbs/').replace(/\\/g, '/')
     try {
         fs.unlinkSync(pathFile)
         res.json({
