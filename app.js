@@ -126,7 +126,6 @@ app.post('/db/list', async (req, res) => {
             data: databasesList.databases
         })
     } catch (e) {
-        console.log(e.message)
         res.json({
             status: 'error',
             message: e.message
@@ -169,7 +168,7 @@ app.post('/db/files-backup', async (req, res) => {
         let files = getAllFiles(folderDB).map(item => {
             let stat = fs.statSync(item)
             let at_time = __.convertTimeToDateTime(stat.mtimeMs)
-            const link = item.replace(pathDBs, '/dbs')
+            const link = item.replace(pathDBs, '/dbs').replace(/\\/g, '/')
             return {
                 filename: link.split('/').reverse()[0],
                 link: link,
