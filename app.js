@@ -218,7 +218,7 @@ app.post('/db/restore', async (req, res) => {
         setTimeout(function () {
             //run backup for windonw
             let mongorestore = getMongoPath().mongorestore
-            execSync(`"${mongorestore}" --host=127.0.0.1 --port=27017 --drop -d ${dbname} "${pathRestoreOut}/${dbname}"`)
+            execSync(`"${mongorestore}" --host=127.0.0.1 --port=27017 --db ${dbname} --drop "${pathRestoreOut}/${dbname}"`)
             setTimeout(function () {
                 //remove folder unzip
                 removeFolder(`${pathRestoreOut}/${dbname}`)
