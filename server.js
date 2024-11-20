@@ -1,5 +1,5 @@
 require('dotenv').config()
-const tools = require('./tools')
+const __ = require('lbm-helpers')
 const app = require('./app')
 const PORT = process.env.PORT || 3008
 const os = require('os')
@@ -8,6 +8,6 @@ icore = icore <= 0 ? 1 : icore
 process.env.UV_THREADPOOL_SIZE = icore
 
 app.listen(PORT, () => {
-    console.log(`Hello, Server is running at ${PORT}, ${tools.time_to_datetime(new Date().getTime(), true)}`)
+    console.log(`Hello, Server is running at ${PORT}, ${__.getNowDateTime()}`)
 })
 
