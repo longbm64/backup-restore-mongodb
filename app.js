@@ -209,8 +209,8 @@ app.post('/db/restore', async (req, res) => {
     const { dbname, link } = req.body
     const pathDBs = path.join(__dirname, 'dbs')
 
-    const pathRestoreIn = (pathDBs + link).replace('/dbs/dbs/', '/dbs/')
-    const pathRestoreOut = `${pathDBs}/${dbname}`
+    const pathRestoreIn = (pathDBs + link).replace('/dbs/dbs/', '/dbs/').replace(/\\/g, '/')
+    const pathRestoreOut = `${pathDBs}/${dbname}`.replace(/\\/g, '/')
 
     setTimeout(function () {
         //unzip
