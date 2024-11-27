@@ -64,8 +64,8 @@ const getMongoPath = () => {
         mongorestore = path.join(__dirname, 'libs') + '/mongorestore'
     }
     return {
-        mongodump: mongodump,
-        mongorestore: mongorestore
+        mongodump: mongodump.replace(/\\/, '/'),
+        mongorestore: mongorestore.replace(/\\/, '/')
     }
 }
 const getAllFiles = (dirPath, arrayOfFiles) => {
@@ -192,7 +192,6 @@ app.post('/db/delete', (req, res) => {
     const link = req.body.link
     const pathDBs = path.join(__dirname, 'dbs')
     const pathFile = (pathDBs + link).replace(/\\/g, '/').replace('/dbs/dbs/', '/dbs/')
-    console.log(pathFile)
     try {
         fs.unlinkSync(pathFile)
         res.json({
@@ -219,7 +218,10 @@ app.post('/db/restore', async (req, res) => {
         setTimeout(function () {
             //run backup for windonw
             let mongorestore = getMongoPath().mongorestore
-            execSync(`"${mongorestore}" --host=127.0.0.1 --port=27017 --db ${dbname} --drop "${pathRestoreOut}/${dbname}"`)
+
+            execSync(`"${mongorestore}" --db ${dbname} --drop "${pathRestoreOut}/${dbname}"`)
+            // >mongorestore.exe --db hiepphat --drop "C:/Users/Admin/Desktop/app_node/backup-restore-mongodb/dbs/hiepphat/hiepphat"
+
             setTimeout(function () {
                 //remove folder unzip
                 removeFolder(`${pathRestoreOut}/${dbname}`)
